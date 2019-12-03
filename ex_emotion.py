@@ -98,23 +98,61 @@ from keras.losses import categorical_crossentropy
 #Categorical crossentropy. Categorical crossentropy is a loss function that is used for single label categorization.
 #This is when only one category is applicable for each data point. In other words, an example can belong to one class only.
 from keras.optimizers import Adam
+#An optimizer is one of the two arguments required for compiling a Keras model
 #Adam is an optimization algorithm that can used instead of the classical stochastic gradient descent procedure to update 
 #network weights iterative based in training data. ... The algorithm is called Adam
 from keras.regularizers import l2
+"""Regularizers allow to apply penalties on layer parameters or layer activity during optimization. 
+These penalties are incorporated in the loss function that the network optimizes.
+
+The penalties are applied on a per-layer basis. The exact API will depend on the layer, but the layers Dense, Conv1D, Conv2D and 
+Conv3D have a unified API.
+
+These layers expose 3 keyword arguments:
+
+kernel_regularizer: instance of keras.regularizers.Regularizer
+bias_regularizer: instance of keras.regularizers.Regularizer
+activity_regularizer: instance of keras.regularizers.Regularizer
+"""
 from keras.utils import np_utils
+#np.utils.to_categorical is used to convert array of labeled data(from 0 to nb_classes-1) to one-hot vector.
+
+
 # pd.set_option('display.max_rows', 500)
 # pd.set_option('display.max_columns', 500)
 # pd.set_option('display.width', 1000)
 
 df=pd.read_csv('fer2013.csv')
 
+#read_csv is an important pandas function to read csv files and do operations on it.
+#Opening a CSV file through this is easy. But there are many others thing one can do through this function only to 
+#change the returned object completely. For instance, one can read a csv file not only locally, but from a URL through read_csv
+# or one can choose what columns needed to export so that we don’t have to edit the array later.
+
 # print(df.info())
 # print(df["Usage"].value_counts())
 
 # print(df.head())
 X_train,train_y,X_test,test_y=[],[],[],[]
+"""The training set is a subset of the data set used to train a model.
 
-for index, row in df.iterrows():
+x_train is the training data set.
+y_train is the set of labels to all the data in x_train.
+The test set is a subset of the data set that you use to test your model after the model has gone through initial vetting 
+by the validation set.
+
+x_test is the test data set.
+y_test is the set of labels to all the data in x_test.
+The validation set is a subset of the data set (separate from the training set) that you use to adjust hyperparameters.
+
+The example you listed doesn't mention the validation set.
+I've made a Deep Learning with Keras playlist on Youtube. It contains the basics for getting started with Keras, and a 
+couple of the videos demo how to organize images into train/valid/test sets, as well as how to get Keras to create a validation
+ set for you. Seeing this implementation may help you get a firmer grasp on how these different data sets are used in practice.
+
+
+"""
+for index, row in df.iterrows():#.iterrows Iterate over DataFrame rows as (index, Series) pairs.
     val=row['pixels'].split(" ")
     try:
         if 'Training' in row['Usage']:
@@ -132,7 +170,9 @@ num_labels = 7
 batch_size = 64
 epochs = 30
 width, height = 48, 48
-
+#In the neural network terminology: one epoch = one forward pass and one backward pass of all the training examples.
+# batch size = the number of training examples in one forward/backward pass. The higher the batch size,
+# the more memory space you'll need.
 
 X_train = np.array(X_train,'float32')
 train_y = np.array(train_y,'float32')
@@ -143,7 +183,7 @@ train_y=np_utils.to_categorical(train_y, num_classes=num_labels)
 test_y=np_utils.to_categorical(test_y, num_classes=num_labels)
 
 #cannot produce
-#normalizing data between oand 1
+#normalizing data between o and 1
 X_train -= np.mean(X_train, axis=0)
 X_train /= np.std(X_train, axis=0)
 
@@ -158,9 +198,15 @@ X_test = X_test.reshape(X_test.shape[0], 48, 48, 1)
 ##designing the cnn
 #1st convolution layer
 model = Sequential()
+#https://www.pyimagesearch.com/2018/12/31/keras-conv2d-and-convolutional-layers/
 
 model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=(X_train.shape[1:])))
-model.add(Conv2D(64,kernel_size= (3, 3), activation='relu'))
+model.add(Conv2D(64,kernel_size= (3, 3), activation='relu'
+#Rectified Linear Unit(relu).
+
+With default values, it returns element-wise max(x, 0).
+#https://keras.io/activations/
+#https://keras.io/layers/convolutional/
 # model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2), strides=(2, 2)))
 model.add(Dropout(0.5))
@@ -170,6 +216,7 @@ model.add(Conv2D(64, (3, 3), activation='relu'))
 model.add(Conv2D(64, (3, 3), activation='relu'))
 # model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2), strides=(2, 2)))
+#https://keras.io/layers/pooling/
 model.add(Dropout(0.5))
 
 #3rd convolution layer
@@ -209,5 +256,6 @@ fer_json = model.to_json()
 with open("fer.json", "w") as json_file:
     json_file.write(fer_json)
 model.save_weights("fer.h5")
+#https://www.pyimagesearch.com/2018/12/31/keras-conv2d-and-convolutional-layers/
 
 
